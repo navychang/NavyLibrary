@@ -4,10 +4,12 @@ import android.media.session.MediaSession;
 
 import java.util.List;
 
+import navychang.www.netlibrary.entity.AddressBean;
 import navychang.www.netlibrary.entity.HttpResult;
+import navychang.www.netlibrary.entity.SaiShiBean;
 import navychang.www.netlibrary.entity.ShopBean;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
 import rx.Observable;
 
@@ -22,13 +24,24 @@ public interface ShopService {
     Observable<HttpResult<ShopBean>> getShop( @Query("jlbid") int jlbid,@Query("token") String token);
 
 
-    @GET("shop/getShopView")
-    Observable<HttpResult<ShopBean>> getShopToken(@Header("token")  MediaSession.Token  token, @Query("jlbid") int jlbid);
+    @POST("activity/queryMyActivity")
+    Observable<HttpResult<SaiShiBean>> getMySaiShi(@Query("token") String token,
+                                                   @Query("jlbid") String jlbid,
+                                                   @Query("uid") String uid,
+                                                   @Query("begin") int begin,
+                                                   @Query("isactivity") String isactivity
+                                                 );
+
+
+
+    @POST("shop/addressManage")//userId	1555
+    Observable<HttpResult<List<AddressBean>>> getAddressList(@Query("userId") String jlbid, @Query("token") String token);
 
 
 
 
 
-    @GET("top250")
-    Observable<HttpResult<List<ShopBean>>> getTopMovie(@Query("start") int start, @Query("count") int count);
+
+
+
 }

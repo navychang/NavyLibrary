@@ -3,10 +3,13 @@ package navychang.www.netlibrary.http;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import navychang.www.netlibrary.entity.AddressBean;
 import navychang.www.netlibrary.entity.HttpResult;
+import navychang.www.netlibrary.entity.SaiShiBean;
 import navychang.www.netlibrary.entity.ShopBean;
 import navychang.www.netlibrary.utils.ValidateUtil;
 import okhttp3.OkHttpClient;
@@ -24,7 +27,7 @@ import rx.schedulers.Schedulers;
  */
 public class ShopHttpMethods {
 
-    public static final String BASE_URL = "http://120.27.50.197:8081/ykp/";//公司外网
+    String BASE_URL = UrlBase.BASE_URL;//公司外网
 
     private static final int DEFAULT_TIMEOUT = 5;
 
@@ -58,13 +61,7 @@ public class ShopHttpMethods {
         return SingletonHolder.INSTANCE;
     }
 
-    /**
-     * 用于获取豆瓣电影Top250的数据
-     *
-     * @param /subscriber 由调用者传过来的观察者对象
-     * @param /start      起始位置
-     * @param /count      获取长度
-     */
+
 //    public void getTopMovie(Subscriber<List<Subject>> subscriber, int start, int count){
 //
 ////        movieService.getTopMovie(start, count)
@@ -82,13 +79,7 @@ public class ShopHttpMethods {
     public void getShopBean(Subscriber<ShopBean> subscriber, Map<String, Object> tokenMap, int jlbid) {
 
         //  加密
-        String token = "";
-        try {
-//            token = ValidateUtil.getSignature(tokenMap, "123456");
-            token = ValidateUtil.getSignature(tokenMap, "123456");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String token = getTheToken(tokenMap);
 
 
         Observable observable = shopService.getShop(jlbid,token)
@@ -104,6 +95,52 @@ public class ShopHttpMethods {
         toSubscribe(observable, subscriber);
 
 
+    }
+
+
+
+    public void getAddressList(Subscriber<SaiShiBean> subscriber, Map<String, Object> tokenMap,  String uid) {
+        String token = getTheToken(tokenMap);
+
+
+        Observable observable = shopService.getAddressList(token,uid)
+                .map(new HttpResultFunc<List<AddressBean>>());
+
+
+
+
+        toSubscribe(observable, subscriber);
+
+
+    }
+
+
+
+    public void getMySaiShi(Subscriber<SaiShiBean> subscriber, Map<String, Object> tokenMap, String jlbid, String uid, int begin, String isactivity) {
+        String token = getTheToken(tokenMap);
+
+
+        Observable observable = shopService.getMySaiShi(token,jlbid,uid,begin,isactivity)
+                .map(new HttpResultFunc<SaiShiBean>());
+
+
+
+
+        toSubscribe(observable, subscriber);
+
+
+    }
+
+    private String getTheToken(Map<String, Object> tokenMap) {
+        //  加密
+        String token = "";
+        try {
+//            token = ValidateUtil.getSignature(tokenMap, "123456");
+            token = ValidateUtil.getSignature(tokenMap, "123456");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return token;
     }
 
     private <T> void toSubscribe(Observable<T> o, Subscriber<T> s) {

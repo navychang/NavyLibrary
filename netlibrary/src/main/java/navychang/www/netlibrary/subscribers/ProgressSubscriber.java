@@ -8,6 +8,7 @@ import java.net.SocketTimeoutException;
 
 import navychang.www.netlibrary.progress.ProgressCancelListener;
 import navychang.www.netlibrary.progress.ProgressDialogHandler;
+import navychang.www.netlibrary.utils.LogUtils;
 import rx.Subscriber;
 
 /**
@@ -20,8 +21,34 @@ public class ProgressSubscriber<T> extends Subscriber<T> implements ProgressCanc
 
     private SubscriberOnNextListener mSubscriberOnNextListener;
     private ProgressDialogHandler mProgressDialogHandler;
-
+    private boolean needShowProgress = true;
+    private boolean needShowToast = false;
     private Context context;
+    private String msg;
+
+    public boolean isNeedShowProgress() {
+        return needShowProgress;
+    }
+
+    public void setNeedShowProgress(boolean needShowProgress) {
+        this.needShowProgress = needShowProgress;
+    }
+
+    public boolean isNeedShowToast() {
+        return needShowToast;
+    }
+
+    public void setNeedShowToast(boolean needShowToast) {
+        this.needShowToast = needShowToast;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 
     public ProgressSubscriber(SubscriberOnNextListener mSubscriberOnNextListener, Context context) {
         this.mSubscriberOnNextListener = mSubscriberOnNextListener;
@@ -29,13 +56,13 @@ public class ProgressSubscriber<T> extends Subscriber<T> implements ProgressCanc
         mProgressDialogHandler = new ProgressDialogHandler(context, this, true);
     }
 
-    private void showProgressDialog(){
+    private void showProgressDialog() {
         if (mProgressDialogHandler != null) {
             mProgressDialogHandler.obtainMessage(ProgressDialogHandler.SHOW_PROGRESS_DIALOG).sendToTarget();
         }
     }
 
-    private void dismissProgressDialog(){
+    private void dismissProgressDialog() {
         if (mProgressDialogHandler != null) {
             mProgressDialogHandler.obtainMessage(ProgressDialogHandler.DISMISS_PROGRESS_DIALOG).sendToTarget();
             mProgressDialogHandler = null;
@@ -48,7 +75,10 @@ public class ProgressSubscriber<T> extends Subscriber<T> implements ProgressCanc
      */
     @Override
     public void onStart() {
-        showProgressDialog();
+        if (needShowProgress) {
+            showProgressDialog();
+        }
+
     }
 
     /**
@@ -56,13 +86,21 @@ public class ProgressSubscriber<T> extends Subscriber<T> implements ProgressCanc
      */
     @Override
     public void onCompleted() {
-        dismissProgressDialog();
-        Toast.makeText(context, "Get Top Movie Completed", Toast.LENGTH_SHORT).show();
+        if (needShowProgress) {
+            dismissProgressDialog();
+
+        }
+
+        if(needShowToast){
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /**
      * 对错误进行统一处理
      * 隐藏ProgressDialog
+     *
      * @param e
      */
     @Override
@@ -73,6 +111,9 @@ public class ProgressSubscriber<T> extends Subscriber<T> implements ProgressCanc
             Toast.makeText(context, "网络中断，请检查您的网络状态", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+//            KLog.a("navy","捕捉到的错误信息为:===      " +e.getMessage() +"      ===请检查代码！");
+            LogUtils.e("navy","捕捉到的错误信息为:===      " +e.getMessage() +"      ===请检查代码！");
+
         }
         dismissProgressDialog();
 
